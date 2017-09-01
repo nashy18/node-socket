@@ -1,0 +1,60 @@
+<html>
+	<head>
+		 <style>
+		  * { margin: 0; padding: 0; box-sizing: border-box; }
+		  body { font: 13px Helvetica, Arial; }
+		  form { background: #000; padding: 3px; bottom: 0; width: 100%; }
+		  form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+		  form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+		  #messages { list-style-type: none; margin: 0; padding: 0; }
+		  #messages li { padding: 5px 10px; }
+		  #messages li:nth-child(odd) { background: #eee; }
+		</style>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+	</head>
+	<body>
+		<div id="header" style="text-align:center;">
+		  <h2 id="title"></h2>
+		  <p id="subtitle"></p>
+		</div>
+		<div class="row" style="min-height:890px;">		 
+		  <div class="col-md-12">
+			<ul id="messages"></ul>		
+		  </div>		
+		</div>
+		 <div>
+			<form action="">
+			  <input id="m" autocomplete="off" /><button type="submit">Send</button>
+			</form>	
+		 </div>
+	</body>
+	<script>
+	  $(function () {
+			//Get IP address:
+			$.getJSON('http://gd.geobytes.com/GetCityDetails?callback=?', function(data) {
+				const ip = data.geobytesipaddress;
+				//Connect socket io
+				var socket = io("http://10.30.30.88:4000");
+				$('form').submit(function(){
+				  let response ={};
+				  response.message = $('#m').val();
+				  response.ip = ip;
+				  socket.emit('chatMessage', response);
+				  $('#m').val('');
+				  return false;
+				});
+				socket.on('chatMessage', function(res){
+					$('#messages').append($('<li>').text(res.ip + ' : ' + res.message));
+					window.scrollTo(0, document.body.scrollHeight);
+				});
+				socket.on('chatLoaded', function(res){
+					$('#title').text(res.message);
+					$('#subtitle').text("Online Users: " + res.onlineUsers);
+					window.scrollTo(0, document.body.scrollHeight);
+				});
+			});				
+	  });
+	</script>
+</html>
+
